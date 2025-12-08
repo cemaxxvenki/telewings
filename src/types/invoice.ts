@@ -1,3 +1,5 @@
+// Invoice types for GST invoice generator
+
 export interface CompanyDetails {
   id?: string;
   name: string;
