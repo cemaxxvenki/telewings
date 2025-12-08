@@ -14,6 +14,7 @@ export interface CompanyDetails {
   ifscCode?: string;
   branch?: string;
   logo?: string;
+  mobile?: string;
 }
 
 export interface CustomerDetails {
