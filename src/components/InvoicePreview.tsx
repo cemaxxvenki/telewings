@@ -44,24 +44,14 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
       {/* Invoice Details Grid */}
       <div className="grid grid-cols-2 border border-black text-xs">
         {/* Left Column */}
-        <div className="border-r border-black">
-          <div className="border-b border-black p-1">
-            <span className="font-semibold">{data.company.address}</span>
+        <div className="border-r border-black p-1">
+          <div>{data.company.address}</div>
+          <div><span className="font-semibold">GSTIN: </span>{data.company.gstin}</div>
+          <div>
+            <span className="font-semibold">State: </span>{data.company.state}
+            <span className="ml-4 font-semibold">Code: </span>{data.company.stateCode}
           </div>
-          <div className="border-b border-black p-1">
-            <span className="font-semibold">GSTIN: </span>
-            <span>{data.company.gstin}</span>
-          </div>
-          <div className="border-b border-black p-1">
-            <span className="font-semibold">Supplier's Ref.: </span>
-            <span>{data.supplierRef || ""}</span>
-          </div>
-          <div className="p-1">
-            <span className="font-semibold">State: </span>
-            <span>{data.company.state}</span>
-            <span className="ml-4 font-semibold">Code: </span>
-            <span>{data.company.stateCode}</span>
-          </div>
+          <div><span className="font-semibold">Mobile: </span>{data.company.mobile || ""}</div>
         </div>
 
         {/* Right Column */}

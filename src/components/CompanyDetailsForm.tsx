@@ -137,6 +137,11 @@ export const CompanyDetailsForm = ({ onSave, initialData }: CompanyDetailsFormPr
           <Input {...register("stateCode", { required: true })} placeholder="33" className="font-mono" />
         </div>
         
+        <div>
+          <Label className="form-label">Mobile No.</Label>
+          <Input {...register("mobile")} placeholder="9876543210" className="font-mono" />
+        </div>
+        
         <div className="border-t pt-4 mt-2">
           <h3 className="text-sm font-medium text-muted-foreground mb-3">Bank Details</h3>
         </div>
