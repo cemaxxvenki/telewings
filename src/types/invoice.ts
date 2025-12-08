@@ -11,6 +11,7 @@ export interface CompanyDetails {
   accountHolderName?: string;
   ifscCode?: string;
   branch?: string;
+  logo?: string;
 }
 
 export interface CustomerDetails {

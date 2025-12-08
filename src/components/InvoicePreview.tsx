@@ -33,8 +33,11 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
         <p className="text-xs font-bold">TAX INVOICE (ORIGINAL FOR RECEIPIENT)</p>
       </div>
 
-      {/* Company Name */}
-      <div className="text-center border-b border-black pb-2 mb-2">
+      {/* Company Name with Logo */}
+      <div className="flex items-center justify-center gap-4 border-b border-black pb-2 mb-2">
+        {data.company.logo && (
+          <img src={data.company.logo} alt="Company Logo" className="h-12 w-auto object-contain" />
+        )}
         <h1 className="text-xl font-bold">{data.company.name}</h1>
       </div>
 
