@@ -1,0 +1,118 @@
+import { InvoiceItem, TaxBreakdown } from "@/types/invoice";
+
+export const calculateItemAmount = (quantity: number, rate: number): number => {
+  return quantity * rate;
+};
+
+export const calculateTaxBreakdown = (items: InvoiceItem[]): TaxBreakdown[] => {
+  const hsnGroups: Record<string, TaxBreakdown> = {};
+
+  items.forEach((item) => {
+    const key = `${item.hsnSac}-${item.gstRate}`;
+    if (!hsnGroups[key]) {
+      hsnGroups[key] = {
+        hsnSac: item.hsnSac,
+        taxableValue: 0,
+        cgstRate: item.gstRate / 2,
+        cgstAmount: 0,
+        sgstRate: item.gstRate / 2,
+        sgstAmount: 0,
+        totalTax: 0,
+      };
+    }
+    hsnGroups[key].taxableValue += item.amount;
+    hsnGroups[key].cgstAmount += (item.amount * item.gstRate) / 200;
+    hsnGroups[key].sgstAmount += (item.amount * item.gstRate) / 200;
+    hsnGroups[key].totalTax +=
+      hsnGroups[key].cgstAmount + hsnGroups[key].sgstAmount;
+  });
+
+  return Object.values(hsnGroups);
+};
+
+export const calculateSubtotal = (items: InvoiceItem[]): number => {
+  return items.reduce((sum, item) => sum + item.amount, 0);
+};
+
+export const calculateTotalCGST = (items: InvoiceItem[]): number => {
+  return items.reduce((sum, item) => sum + (item.amount * item.gstRate) / 200, 0);
+};
+
+export const calculateTotalSGST = (items: InvoiceItem[]): number => {
+  return items.reduce((sum, item) => sum + (item.amount * item.gstRate) / 200, 0);
+};
+
+export const calculateGrandTotal = (
+  items: InvoiceItem[],
+  pAndF: number = 0,
+  roundOff: number = 0
+): number => {
+  const subtotal = calculateSubtotal(items);
+  const cgst = calculateTotalCGST(items);
+  const sgst = calculateTotalSGST(items);
+  return subtotal + cgst + sgst + pAndF + roundOff;
+};
+
+export const numberToWords = (num: number): string => {
+  const ones = [
+    "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+    "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
+    "Seventeen", "Eighteen", "Nineteen",
+  ];
+  const tens = [
+    "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety",
+  ];
+
+  if (num === 0) return "Zero";
+
+  const convertLessThanThousand = (n: number): string => {
+    if (n === 0) return "";
+    if (n < 20) return ones[n];
+    if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
+    return ones[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + convertLessThanThousand(n % 100) : "");
+  };
+
+  const convert = (n: number): string => {
+    if (n === 0) return "";
+    
+    const crore = Math.floor(n / 10000000);
+    const lakh = Math.floor((n % 10000000) / 100000);
+    const thousand = Math.floor((n % 100000) / 1000);
+    const remainder = n % 1000;
+
+    let result = "";
+    if (crore) result += convertLessThanThousand(crore) + " Crore ";
+    if (lakh) result += convertLessThanThousand(lakh) + " Lakh ";
+    if (thousand) result += convertLessThanThousand(thousand) + " Thousand ";
+    if (remainder) result += convertLessThanThousand(remainder);
+
+    return result.trim();
+  };
+
+  const rupees = Math.floor(num);
+  const paise = Math.round((num - rupees) * 100);
+
+  let result = "Rupees " + convert(rupees);
+  if (paise > 0) {
+    result += " and " + convert(paise) + " Paise";
+  }
+  result += " Only";
+
+  return result;
+};
+
+export const formatCurrency = (amount: number): string => {
+  return amount.toFixed(2);
+};
+
+export const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const day = date.getDate().toString().padStart(2, "0");
+  const monthNames = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear().toString().slice(-2);
+  return `${day}-${month}-${year}`;
+};
