@@ -37,7 +37,7 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
       <div className="border border-black p-2 mb-0">
         <div className="flex items-start gap-4">
           {data.company.logo && (
-            <img src={data.company.logo} alt="Company Logo" className="h-16 w-auto object-contain flex-shrink-0" />
+            <img src={data.company.logo} alt="Company Logo" className="h-24 w-auto object-contain flex-shrink-0" />
           )}
           <div className="flex-1">
             <h1 className="text-xl font-bold">{data.company.name}</h1>
@@ -120,25 +120,25 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
       <table className="w-full border-x border-b border-black text-xs border-collapse">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border border-black p-1 w-10">Sl No.</th>
-            <th className="border border-black p-1">Description of Goods</th>
-            <th className="border border-black p-1 w-16">HSN/SAC</th>
-            <th className="border border-black p-1 w-16">GST Rate</th>
-            <th className="border border-black p-1 w-14">Quantity</th>
-            <th className="border border-black p-1 w-16">Rate per</th>
-            <th className="border border-black p-1 w-20">Amount</th>
+            <th className="border border-black p-1 w-10 text-center">Sl No.</th>
+            <th className="border border-black p-1 text-center">Description of Goods</th>
+            <th className="border border-black p-1 w-16 text-center">HSN/SAC</th>
+            <th className="border border-black p-1 w-16 text-center">GST Rate</th>
+            <th className="border border-black p-1 w-14 text-center">Quantity</th>
+            <th className="border border-black p-1 w-16 text-center">Rate per</th>
+            <th className="border border-black p-1 w-20 text-center">Amount</th>
           </tr>
         </thead>
         <tbody>
           {data.items.map((item) => (
             <tr key={item.id}>
               <td className="border border-black p-1 text-center">{item.slNo}</td>
-              <td className="border border-black p-1">{item.description}</td>
+              <td className="border border-black p-1 text-center">{item.description}</td>
               <td className="border border-black p-1 text-center">{item.hsnSac}</td>
               <td className="border border-black p-1 text-center">{item.gstRate}%</td>
-              <td className="border border-black p-1 text-right">{item.quantity}</td>
-              <td className="border border-black p-1 text-right">{item.rate}</td>
-              <td className="border border-black p-1 text-right">{formatCurrency(item.amount)}</td>
+              <td className="border border-black p-1 text-center">{item.quantity}</td>
+              <td className="border border-black p-1 text-center">{item.rate}</td>
+              <td className="border border-black p-1 text-center">{formatCurrency(item.amount)}</td>
             </tr>
           ))}
           {/* Empty rows for spacing */}
@@ -187,37 +187,22 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
         <span className="font-bold">{numberToWords(grandTotal)}</span>
       </div>
 
-      {/* Tax Breakdown Table */}
+      {/* Tax Breakdown Table - Combined Totals */}
       <table className="w-full border-x border-b border-black text-xs border-collapse mt-2">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border border-black p-1">HSN/SAC</th>
-            <th className="border border-black p-1">Taxable Value</th>
-            <th className="border border-black p-1">Central Tax</th>
-            <th className="border border-black p-1">State Tax</th>
-            <th className="border border-black p-1">Total Tax</th>
+            <th className="border border-black p-1 text-center">Taxable Value</th>
+            <th className="border border-black p-1 text-center">Central Tax (CGST)</th>
+            <th className="border border-black p-1 text-center">State Tax (SGST)</th>
+            <th className="border border-black p-1 text-center">Total Tax Amount</th>
           </tr>
         </thead>
         <tbody>
-          {taxBreakdown.map((tax, idx) => (
-            <tr key={idx}>
-              <td className="border border-black p-1 text-center">{tax.hsnSac}</td>
-              <td className="border border-black p-1 text-right">{formatCurrency(tax.taxableValue)}</td>
-              <td className="border border-black p-1 text-right">
-                {tax.cgstRate}% - {formatCurrency(tax.cgstAmount)}
-              </td>
-              <td className="border border-black p-1 text-right">
-                {tax.sgstRate}% - {formatCurrency(tax.sgstAmount)}
-              </td>
-              <td className="border border-black p-1 text-right">{formatCurrency(tax.totalTax)}</td>
-            </tr>
-          ))}
-          <tr className="font-bold">
-            <td className="border border-black p-1 text-center">Total</td>
-            <td className="border border-black p-1 text-right">{formatCurrency(subtotal)}</td>
-            <td className="border border-black p-1 text-right">{formatCurrency(cgst)}</td>
-            <td className="border border-black p-1 text-right">{formatCurrency(sgst)}</td>
-            <td className="border border-black p-1 text-right">{formatCurrency(totalTax)}</td>
+          <tr className="font-semibold">
+            <td className="border border-black p-1 text-center">{formatCurrency(subtotal)}</td>
+            <td className="border border-black p-1 text-center">{formatCurrency(cgst)}</td>
+            <td className="border border-black p-1 text-center">{formatCurrency(sgst)}</td>
+            <td className="border border-black p-1 text-center">{formatCurrency(totalTax)}</td>
           </tr>
         </tbody>
       </table>
