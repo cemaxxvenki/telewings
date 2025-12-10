@@ -13,7 +13,7 @@ interface InvoiceItemsTableProps {
   onItemsChange: (items: InvoiceItem[]) => void;
 }
 
-const GST_RATES = [0, 5, 12, 18, 28];
+const GST_RATES = [0, 5, 9, 12, 18, 28];
 
 export const InvoiceItemsTable = ({ items, onItemsChange }: InvoiceItemsTableProps) => {
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
