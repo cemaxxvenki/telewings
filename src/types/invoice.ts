@@ -39,9 +39,12 @@ export interface InvoiceItem {
   amount: number;
 }
 
+export type InvoiceType = 'tax' | 'proforma';
+
 export interface InvoiceData {
   invoiceNo: string;
   invoiceDate: string;
+  invoiceType: InvoiceType;
   deliveryNote?: string;
   paymentTerms?: string;
   supplierRef?: string;
