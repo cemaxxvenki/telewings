@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CompanyDetails } from "@/types/invoice";
 import { saveCompanyDetails, getCompanyDetails } from "@/utils/storage";
 import { toast } from "sonner";
-import { Building2, Save, Upload, X } from "lucide-react";
+import { Building2, Save, Upload, X, Stamp } from "lucide-react";
 
 interface CompanyDetailsFormProps {
   onSave: (details: CompanyDetails) => void;
@@ -18,13 +18,16 @@ export const CompanyDetailsForm = ({ onSave, initialData }: CompanyDetailsFormPr
     defaultValues: initialData || undefined,
   });
   const [logo, setLogo] = useState<string | undefined>(initialData?.logo);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [seal, setSeal] = useState<string | undefined>(initialData?.seal);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const sealInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const saved = getCompanyDetails();
     if (saved) {
       reset(saved);
       setLogo(saved.logo);
+      setSeal(saved.seal);
     }
   }, [reset]);
 
@@ -45,16 +48,42 @@ export const CompanyDetailsForm = ({ onSave, initialData }: CompanyDetailsFormPr
     }
   };
 
+  const handleSealUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 500 * 1024) {
+        toast.error("Seal size should be less than 500KB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setSeal(base64);
+        setValue("seal", base64);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const removeLogo = () => {
     setLogo(undefined);
     setValue("logo", undefined);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    if (logoInputRef.current) {
+      logoInputRef.current.value = "";
+    }
+  };
+
+  const removeSeal = () => {
+    setSeal(undefined);
+    setValue("seal", undefined);
+    if (sealInputRef.current) {
+      sealInputRef.current.value = "";
     }
   };
 
   const onSubmit = (data: CompanyDetails) => {
     data.logo = logo;
+    data.seal = seal;
     saveCompanyDetails(data);
     onSave(data);
     toast.success("Company details saved!");
@@ -91,15 +120,54 @@ export const CompanyDetailsForm = ({ onSave, initialData }: CompanyDetailsFormPr
           )}
           <div>
             <input
-              ref={fileInputRef}
+              ref={logoInputRef}
               type="file"
               accept="image/*"
               onChange={handleLogoUpload}
               className="hidden"
             />
-            <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+            <Button type="button" variant="outline" size="sm" onClick={() => logoInputRef.current?.click()}>
               <Upload className="h-4 w-4 mr-2" />
               Upload Logo
+            </Button>
+            <p className="text-xs text-muted-foreground mt-1">Max 500KB, PNG/JPG recommended</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Seal Upload */}
+      <div className="mb-6">
+        <Label className="form-label">Company Seal</Label>
+        <div className="flex items-center gap-4 mt-2">
+          {seal ? (
+            <div className="relative">
+              <img src={seal} alt="Company Seal" className="h-16 w-auto max-w-32 object-contain border rounded" />
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="absolute -top-2 -right-2 h-6 w-6"
+                onClick={removeSeal}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ) : (
+            <div className="h-16 w-32 border-2 border-dashed rounded flex items-center justify-center text-muted-foreground text-xs">
+              No seal
+            </div>
+          )}
+          <div>
+            <input
+              ref={sealInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleSealUpload}
+              className="hidden"
+            />
+            <Button type="button" variant="outline" size="sm" onClick={() => sealInputRef.current?.click()}>
+              <Stamp className="h-4 w-4 mr-2" />
+              Upload Seal
             </Button>
             <p className="text-xs text-muted-foreground mt-1">Max 500KB, PNG/JPG recommended</p>
           </div>

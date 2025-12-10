@@ -118,6 +118,16 @@ export const CustomerSelector = ({ onSelect, selectedCustomer }: CustomerSelecto
             <Label className="form-label">State</Label>
             <Input {...register("state")} placeholder="Tamilnadu" />
           </div>
+
+          <div>
+            <Label className="form-label">State Code</Label>
+            <Input {...register("stateCode")} placeholder="33" className="font-mono" />
+          </div>
+
+          <div>
+            <Label className="form-label">Mobile No.</Label>
+            <Input {...register("mobile")} placeholder="9876543210" className="font-mono" />
+          </div>
         </div>
 
         <div className="flex gap-2 mt-4">
