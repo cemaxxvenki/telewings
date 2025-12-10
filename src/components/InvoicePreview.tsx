@@ -33,28 +33,51 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
         <p className="text-xs font-bold">TAX INVOICE (ORIGINAL FOR RECEIPIENT)</p>
       </div>
 
-      {/* Company Name with Logo */}
-      <div className="flex items-center justify-center gap-4 border-b border-black pb-2 mb-2">
-        {data.company.logo && (
-          <img src={data.company.logo} alt="Company Logo" className="h-12 w-auto object-contain" />
-        )}
-        <h1 className="text-xl font-bold">{data.company.name}</h1>
+      {/* Company Header - Logo on Left, Name and Address on Right */}
+      <div className="border border-black p-2 mb-0">
+        <div className="flex items-start gap-4">
+          {data.company.logo && (
+            <img src={data.company.logo} alt="Company Logo" className="h-16 w-auto object-contain flex-shrink-0" />
+          )}
+          <div className="flex-1">
+            <h1 className="text-xl font-bold">{data.company.name}</h1>
+            <div className="text-xs mt-1">{data.company.address}</div>
+            <div className="text-xs">
+              <span className="font-semibold">GSTIN: </span>{data.company.gstin}
+              <span className="ml-4 font-semibold">State: </span>{data.company.state}
+              <span className="ml-2 font-semibold">Code: </span>{data.company.stateCode}
+            </div>
+            {data.company.mobile && (
+              <div className="text-xs">
+                <span className="font-semibold">Mobile: </span>{data.company.mobile}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Invoice Details Grid */}
-      <div className="grid grid-cols-2 border border-black text-xs">
-        {/* Left Column */}
+      <div className="grid grid-cols-2 border-x border-b border-black text-xs">
+        {/* Left Column - Customer Details Merged */}
         <div className="border-r border-black p-1">
-          <div>{data.company.address}</div>
-          <div><span className="font-semibold">GSTIN: </span>{data.company.gstin}</div>
-          <div>
-            <span className="font-semibold">State: </span>{data.company.state}
-            <span className="ml-4 font-semibold">Code: </span>{data.company.stateCode}
-          </div>
-          <div><span className="font-semibold">Mobile: </span>{data.company.mobile || ""}</div>
+          <div className="font-bold bg-gray-100 p-1 -m-1 mb-1 border-b border-black">Buyer (Bill to)</div>
+          <div className="font-semibold">{data.customer.name}</div>
+          <div>{data.customer.address}</div>
+          <div><span className="font-semibold">GSTIN: </span>{data.customer.gstin}</div>
+          {data.customer.state && (
+            <div>
+              <span className="font-semibold">State: </span>{data.customer.state}
+              {data.customer.stateCode && (
+                <><span className="ml-2 font-semibold">Code: </span>{data.customer.stateCode}</>
+              )}
+            </div>
+          )}
+          {data.customer.mobile && (
+            <div><span className="font-semibold">Mobile: </span>{data.customer.mobile}</div>
+          )}
         </div>
 
-        {/* Right Column */}
+        {/* Right Column - Invoice Details */}
         <div>
           <div className="border-b border-black p-1">
             <span className="font-semibold">Invoice No.: </span>
@@ -68,26 +91,10 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
             <span className="font-semibold">Delivery Note: </span>
             <span>{data.deliveryNote || ""}</span>
           </div>
-          <div className="p-1">
+          <div className="border-b border-black p-1">
             <span className="font-semibold">Mode/Terms of Payment: </span>
             <span>{data.paymentTerms || ""}</span>
           </div>
-        </div>
-      </div>
-
-      {/* Buyer Details */}
-      <div className="grid grid-cols-2 border-x border-b border-black text-xs">
-        <div className="border-r border-black">
-          <div className="bg-gray-100 p-1 font-bold border-b border-black">
-            {data.customer.name}
-          </div>
-          <div className="p-1 border-b border-black">{data.customer.address}</div>
-          <div className="p-1">
-            <span className="font-semibold">GSTIN: </span>
-            <span>{data.customer.gstin}</span>
-          </div>
-        </div>
-        <div>
           <div className="border-b border-black p-1">
             <span className="font-semibold">Buyer's Order No.: </span>
             <span>{data.buyerOrderNo || ""}</span>
@@ -221,8 +228,15 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
         <span>{numberToWords(totalTax)}</span>
       </div>
 
-      {/* Footer Grid */}
-      <div className="grid grid-cols-2 border-x border-b border-black text-xs">
+      {/* Declaration */}
+      <div className="border-x border-b border-black p-2 text-xs">
+        <div className="font-bold mb-1">Declaration:</div>
+        <div>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</div>
+      </div>
+
+      {/* Footer Grid - Bank Details, Customer Seal, Company Signature */}
+      <div className="grid grid-cols-3 border-x border-b border-black text-xs">
+        {/* Bank Details */}
         <div className="border-r border-black p-2">
           <div className="mb-1">
             <span className="font-semibold">Company's PAN: </span>
@@ -246,12 +260,22 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
             <span>{data.company.ifscCode}</span>
           </div>
         </div>
-        <div className="p-2 flex flex-col justify-between">
-          <div className="text-center text-xs text-gray-500">Customer's Seal and Signature</div>
-          <div className="text-right mt-8">
-            <div className="font-bold">For {data.company.name}</div>
-            <div className="mt-8 border-t border-black pt-1">Authorised Signatory</div>
+
+        {/* Customer's Seal and Signature Column */}
+        <div className="border-r border-black p-2 flex flex-col justify-between min-h-[120px]">
+          <div className="font-semibold text-center">Customer's Seal and Signature</div>
+          <div className="flex-1"></div>
+        </div>
+
+        {/* Company Signature Column */}
+        <div className="p-2 flex flex-col justify-between min-h-[120px]">
+          <div className="text-right font-bold">For {data.company.name}</div>
+          <div className="flex-1 flex items-center justify-center">
+            {data.company.seal && (
+              <img src={data.company.seal} alt="Company Seal" className="h-16 w-auto object-contain" />
+            )}
           </div>
+          <div className="text-right border-t border-black pt-1">Authorised Signatory</div>
         </div>
       </div>
 

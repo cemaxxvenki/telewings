@@ -15,6 +15,7 @@ export interface CompanyDetails {
   branch?: string;
   logo?: string;
   mobile?: string;
+  seal?: string;
 }
 
 export interface CustomerDetails {
@@ -24,6 +25,7 @@ export interface CustomerDetails {
   gstin: string;
   state?: string;
   stateCode?: string;
+  mobile?: string;
 }
 
 export interface InvoiceItem {
