@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,7 +8,7 @@ import { CompanyDetailsForm } from "@/components/CompanyDetailsForm";
 import { CustomerSelector } from "@/components/CustomerSelector";
 import { InvoiceItemsTable } from "@/components/InvoiceItemsTable";
 import { InvoicePreview } from "@/components/InvoicePreview";
-import { CompanyDetails, CustomerDetails, InvoiceData, InvoiceItem } from "@/types/invoice";
+import { CompanyDetails, CustomerDetails, InvoiceData, InvoiceItem, InvoiceType } from "@/types/invoice";
 import { getCompanyDetails, getNextInvoiceNumber } from "@/utils/storage";
 import { toast } from "sonner";
 import { FileText, Download, Eye, Settings, ReceiptText } from "lucide-react";
@@ -25,6 +26,7 @@ const Index = () => {
   const [roundOff, setRoundOff] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [invoiceType, setInvoiceType] = useState<InvoiceType>("tax");
 
   // Optional fields
   const [deliveryNote, setDeliveryNote] = useState("");
@@ -47,6 +49,7 @@ const Index = () => {
   const invoiceData: InvoiceData = {
     invoiceNo,
     invoiceDate,
+    invoiceType,
     deliveryNote,
     paymentTerms,
     supplierRef,
@@ -184,7 +187,22 @@ const Index = () => {
                     <FileText className="h-5 w-5 text-primary" />
                     <h2 className="text-lg font-semibold text-foreground">Invoice Details</h2>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <Label className="form-label">Invoice Type *</Label>
+                      <Select
+                        value={invoiceType}
+                        onValueChange={(val) => setInvoiceType(val as InvoiceType)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="tax">Tax Invoice</SelectItem>
+                          <SelectItem value="proforma">Proforma Invoice</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div>
                       <Label className="form-label">Invoice No. *</Label>
                       <Input
