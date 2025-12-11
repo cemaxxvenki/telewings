@@ -13,15 +13,7 @@ interface InvoiceItemsTableProps {
   onItemsChange: (items: InvoiceItem[]) => void;
 }
 
-const GST_RATES = [
-  { value: 0, label: "0% (No Tax)", type: "gst" },
-  { value: 5, label: "5% (2.5% + 2.5%)", type: "gst" },
-  { value: 9, label: "9% (4.5% + 4.5%)", type: "gst" },
-  { value: 12, label: "12% (6% + 6%)", type: "gst" },
-  { value: 18, label: "18% (9% + 9%)", type: "gst" },
-  { value: 28, label: "28% (14% + 14%)", type: "gst" },
-  { value: 18, label: "IGST 18%", type: "igst" },
-];
+const GST_RATES = [0, 5, 12, 18, 28];
 
 export const InvoiceItemsTable = ({ items, onItemsChange }: InvoiceItemsTableProps) => {
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
@@ -171,19 +163,16 @@ export const InvoiceItemsTable = ({ items, onItemsChange }: InvoiceItemsTablePro
                 </td>
                 <td>
                   <Select
-                    value={`gst-${item.gstRate}`}
-                    onValueChange={(val) => {
-                      const [, rateVal] = val.split('-');
-                      updateItem(item.id, "gstRate", Number(rateVal));
-                    }}
+                    value={item.gstRate.toString()}
+                    onValueChange={(val) => updateItem(item.id, "gstRate", Number(val))}
                   >
                     <SelectTrigger className="text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {GST_RATES.map((rate, index) => (
-                        <SelectItem key={`${rate.type}-${rate.value}-${index}`} value={`${rate.type}-${rate.value}`}>
-                          {rate.label}
+                      {GST_RATES.map((rate) => (
+                        <SelectItem key={rate} value={rate.toString()}>
+                          {rate}%
                         </SelectItem>
                       ))}
                     </SelectContent>
