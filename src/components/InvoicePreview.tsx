@@ -1,10 +1,10 @@
-import { InvoiceData, TaxBreakdown } from "@/types/invoice";
+import { InvoiceData } from "@/types/invoice";
 import {
   calculateSubtotal,
   calculateTotalCGST,
   calculateTotalSGST,
+  calculateTotalIGST,
   calculateGrandTotal,
-  calculateTaxBreakdown,
   numberToWords,
   formatCurrency,
   formatDate,
@@ -18,9 +18,11 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
   const subtotal = calculateSubtotal(data.items);
   const cgst = calculateTotalCGST(data.items);
   const sgst = calculateTotalSGST(data.items);
+  const igst = calculateTotalIGST(data.items);
   const grandTotal = calculateGrandTotal(data.items, data.pAndF, data.roundOff);
-  const taxBreakdown = calculateTaxBreakdown(data.items);
-  const totalTax = cgst + sgst;
+  const hasIGST = data.items.some(item => item.gstType === 'IGST');
+  const hasCGSTSGST = data.items.some(item => item.gstType !== 'IGST');
+  const totalTax = cgst + sgst + igst;
 
   return (
     <div
@@ -37,7 +39,7 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
       <div className="border border-black p-2 mb-0">
         <div className="flex items-start gap-4">
           {data.company.logo && (
-            <img src={data.company.logo} alt="Company Logo" className="h-16 w-auto object-contain flex-shrink-0" />
+            <img src={data.company.logo} alt="Company Logo" className="h-24 w-auto object-contain flex-shrink-0" />
           )}
           <div className="flex-1">
             <h1 className="text-xl font-bold">{data.company.name}</h1>
@@ -59,8 +61,8 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
       {/* Invoice Details Grid */}
       <div className="grid grid-cols-2 border-x border-b border-black text-xs">
         {/* Left Column - Customer Details Merged */}
-        <div className="border-r border-black p-1">
-          <div className="font-bold bg-gray-100 p-1 -m-1 mb-1 border-b border-black">Buyer (Bill to)</div>
+        <div className="border-r border-black pb-2 pt-1 px-1">
+          <div className="font-bold bg-gray-100 py-1.5 px-1 -mx-1 -mt-1 mb-1 border-b border-black">Buyer (Bill to)</div>
           <div className="font-semibold">{data.customer.name}</div>
           <div>{data.customer.address}</div>
           <div><span className="font-semibold">GSTIN: </span>{data.customer.gstin}</div>
@@ -79,37 +81,37 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
 
         {/* Right Column - Invoice Details */}
         <div>
-          <div className="border-b border-black p-1">
+          <div className="border-b border-black pb-2 pt-1 px-1">
             <span className="font-semibold">Invoice No.: </span>
             <span>{data.invoiceNo}</span>
           </div>
-          <div className="border-b border-black p-1">
+          <div className="border-b border-black pb-2 pt-1 px-1">
             <span className="font-semibold">Dated: </span>
             <span>{formatDate(data.invoiceDate)}</span>
           </div>
-          <div className="border-b border-black p-1">
+          <div className="border-b border-black pb-2 pt-1 px-1">
             <span className="font-semibold">Delivery Note: </span>
             <span>{data.deliveryNote || ""}</span>
           </div>
-          <div className="border-b border-black p-1">
+          <div className="border-b border-black pb-2 pt-1 px-1">
             <span className="font-semibold">Mode/Terms of Payment: </span>
             <span>{data.paymentTerms || ""}</span>
           </div>
-          <div className="border-b border-black p-1">
+          <div className="border-b border-black pb-2 pt-1 px-1">
             <span className="font-semibold">Buyer's Order No.: </span>
             <span>{data.buyerOrderNo || ""}</span>
             <span className="ml-2 font-semibold">Dated: </span>
             <span>{data.buyerOrderDate || ""}</span>
           </div>
-          <div className="border-b border-black p-1">
+          <div className="border-b border-black pb-2 pt-1 px-1">
             <span className="font-semibold">Dispatch Doc No.: </span>
             <span>{data.dispatchDocNo || ""}</span>
           </div>
-          <div className="border-b border-black p-1">
+          <div className="border-b border-black pb-2 pt-1 px-1">
             <span className="font-semibold">Dispatch through: </span>
             <span>{data.dispatchThrough || ""}</span>
           </div>
-          <div className="p-1">
+          <div className="pb-2 pt-1 px-1">
             <span className="font-semibold">Destination: </span>
             <span>{data.destination || ""}</span>
           </div>
@@ -120,25 +122,27 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
       <table className="w-full border-x border-b border-black text-xs border-collapse">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border border-black p-1 w-10">Sl No.</th>
-            <th className="border border-black p-1">Description of Goods</th>
-            <th className="border border-black p-1 w-16">HSN/SAC</th>
-            <th className="border border-black p-1 w-16">GST Rate</th>
-            <th className="border border-black p-1 w-14">Quantity</th>
-            <th className="border border-black p-1 w-16">Rate per</th>
-            <th className="border border-black p-1 w-20">Amount</th>
+            <th className="border border-black pb-2 pt-1 px-1 w-10">Sl No.</th>
+            <th className="border border-black pb-2 pt-1 px-1">Description of Goods</th>
+            <th className="border border-black pb-2 pt-1 px-1 w-16">HSN/SAC</th>
+            <th className="border border-black pb-2 pt-1 px-1 w-16">GST Rate</th>
+            <th className="border border-black pb-2 pt-1 px-1 w-14">Quantity</th>
+            <th className="border border-black pb-2 pt-1 px-1 w-16">Rate per</th>
+            <th className="border border-black pb-2 pt-1 px-1 w-20">Amount</th>
           </tr>
         </thead>
         <tbody>
           {data.items.map((item) => (
             <tr key={item.id}>
-              <td className="border border-black p-1 text-center">{item.slNo}</td>
-              <td className="border border-black p-1">{item.description}</td>
-              <td className="border border-black p-1 text-center">{item.hsnSac}</td>
-              <td className="border border-black p-1 text-center">{item.gstRate}%</td>
-              <td className="border border-black p-1 text-right">{item.quantity}</td>
-              <td className="border border-black p-1 text-right">{item.rate}</td>
-              <td className="border border-black p-1 text-right">{formatCurrency(item.amount)}</td>
+              <td className="border border-black pb-2 pt-1 px-1 text-center">{item.slNo}</td>
+              <td className="border border-black pb-2 pt-1 px-1">{item.description}</td>
+              <td className="border border-black pb-2 pt-1 px-1 text-center">{item.hsnSac}</td>
+              <td className="border border-black pb-2 pt-1 px-1 text-center">
+                {item.gstRate}%{item.gstType === 'IGST' ? ' IGST' : ''}
+              </td>
+              <td className="border border-black pb-2 pt-1 px-1 text-right">{item.quantity}</td>
+              <td className="border border-black pb-2 pt-1 px-1 text-right">{item.rate}</td>
+              <td className="border border-black pb-2 pt-1 px-1 text-right">{formatCurrency(item.amount)}</td>
             </tr>
           ))}
           {/* Empty rows for spacing */}
@@ -147,83 +151,92 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
               .fill(0)
               .map((_, i) => (
                 <tr key={`empty-${i}`}>
-                  <td className="border border-black p-1">&nbsp;</td>
-                  <td className="border border-black p-1">&nbsp;</td>
-                  <td className="border border-black p-1">&nbsp;</td>
-                  <td className="border border-black p-1">&nbsp;</td>
-                  <td className="border border-black p-1">&nbsp;</td>
-                  <td className="border border-black p-1">&nbsp;</td>
-                  <td className="border border-black p-1">&nbsp;</td>
+                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
+                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
+                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
+                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
+                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
+                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
+                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
                 </tr>
               ))}
         </tbody>
       </table>
 
       {/* Totals */}
+      {hasCGSTSGST && (
+        <>
+          <div className="grid grid-cols-7 border-x border-b border-black text-xs">
+            <div className="col-span-6 border-r border-black pb-2 pt-1 px-1 text-right font-semibold">CGST:</div>
+            <div className="pb-2 pt-1 px-1 text-right">{formatCurrency(cgst)}</div>
+          </div>
+          <div className="grid grid-cols-7 border-x border-b border-black text-xs">
+            <div className="col-span-6 border-r border-black pb-2 pt-1 px-1 text-right font-semibold">SGST:</div>
+            <div className="pb-2 pt-1 px-1 text-right">{formatCurrency(sgst)}</div>
+          </div>
+        </>
+      )}
+      {hasIGST && (
+        <div className="grid grid-cols-7 border-x border-b border-black text-xs">
+          <div className="col-span-6 border-r border-black pb-2 pt-1 px-1 text-right font-semibold">IGST:</div>
+          <div className="pb-2 pt-1 px-1 text-right">{formatCurrency(igst)}</div>
+        </div>
+      )}
       <div className="grid grid-cols-7 border-x border-b border-black text-xs">
-        <div className="col-span-6 border-r border-black p-1 text-right font-semibold">CGST:</div>
-        <div className="p-1 text-right">{formatCurrency(cgst)}</div>
+        <div className="col-span-6 border-r border-black pb-2 pt-1 px-1 text-right font-semibold">P&F:</div>
+        <div className="pb-2 pt-1 px-1 text-right">{formatCurrency(data.pAndF)}</div>
       </div>
       <div className="grid grid-cols-7 border-x border-b border-black text-xs">
-        <div className="col-span-6 border-r border-black p-1 text-right font-semibold">SGST:</div>
-        <div className="p-1 text-right">{formatCurrency(sgst)}</div>
-      </div>
-      <div className="grid grid-cols-7 border-x border-b border-black text-xs">
-        <div className="col-span-6 border-r border-black p-1 text-right font-semibold">P&F:</div>
-        <div className="p-1 text-right">{formatCurrency(data.pAndF)}</div>
-      </div>
-      <div className="grid grid-cols-7 border-x border-b border-black text-xs">
-        <div className="col-span-6 border-r border-black p-1 text-right font-semibold">Round off:</div>
-        <div className="p-1 text-right">{formatCurrency(data.roundOff)}</div>
+        <div className="col-span-6 border-r border-black pb-2 pt-1 px-1 text-right font-semibold">Round off:</div>
+        <div className="pb-2 pt-1 px-1 text-right">{formatCurrency(data.roundOff)}</div>
       </div>
       <div className="grid grid-cols-7 border-x border-b border-black text-xs font-bold bg-gray-100">
-        <div className="col-span-6 border-r border-black p-1 text-right">Total:</div>
-        <div className="p-1 text-right">{formatCurrency(grandTotal)}</div>
+        <div className="col-span-6 border-r border-black pb-2 pt-1 px-1 text-right">Total:</div>
+        <div className="pb-2 pt-1 px-1 text-right">{formatCurrency(grandTotal)}</div>
       </div>
 
       {/* Amount in Words */}
-      <div className="border-x border-b border-black p-1 text-xs">
+      <div className="border-x border-b border-black pb-2 pt-1 px-1 text-xs">
         <span className="font-semibold">Amount Chargeable (in words): </span>
         <span className="font-bold">{numberToWords(grandTotal)}</span>
       </div>
 
-      {/* Tax Breakdown Table */}
+      {/* Tax Breakdown Table - Simplified Combined Totals */}
       <table className="w-full border-x border-b border-black text-xs border-collapse mt-2">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border border-black p-1">HSN/SAC</th>
-            <th className="border border-black p-1">Taxable Value</th>
-            <th className="border border-black p-1">Central Tax</th>
-            <th className="border border-black p-1">State Tax</th>
-            <th className="border border-black p-1">Total Tax</th>
+            <th className="border border-black pb-2 pt-1 px-1">Taxable Value</th>
+            {hasCGSTSGST && (
+              <>
+                <th className="border border-black pb-2 pt-1 px-1">Central Tax</th>
+                <th className="border border-black pb-2 pt-1 px-1">State Tax</th>
+              </>
+            )}
+            {hasIGST && (
+              <th className="border border-black pb-2 pt-1 px-1">Integrated Tax</th>
+            )}
+            <th className="border border-black pb-2 pt-1 px-1">Total Tax</th>
           </tr>
         </thead>
         <tbody>
-          {taxBreakdown.map((tax, idx) => (
-            <tr key={idx}>
-              <td className="border border-black p-1 text-center">{tax.hsnSac}</td>
-              <td className="border border-black p-1 text-right">{formatCurrency(tax.taxableValue)}</td>
-              <td className="border border-black p-1 text-right">
-                {tax.cgstRate}% - {formatCurrency(tax.cgstAmount)}
-              </td>
-              <td className="border border-black p-1 text-right">
-                {tax.sgstRate}% - {formatCurrency(tax.sgstAmount)}
-              </td>
-              <td className="border border-black p-1 text-right">{formatCurrency(tax.totalTax)}</td>
-            </tr>
-          ))}
           <tr className="font-bold">
-            <td className="border border-black p-1 text-center">Total</td>
-            <td className="border border-black p-1 text-right">{formatCurrency(subtotal)}</td>
-            <td className="border border-black p-1 text-right">{formatCurrency(cgst)}</td>
-            <td className="border border-black p-1 text-right">{formatCurrency(sgst)}</td>
-            <td className="border border-black p-1 text-right">{formatCurrency(totalTax)}</td>
+            <td className="border border-black pb-2 pt-1 px-1 text-right">{formatCurrency(subtotal)}</td>
+            {hasCGSTSGST && (
+              <>
+                <td className="border border-black pb-2 pt-1 px-1 text-right">{formatCurrency(cgst)}</td>
+                <td className="border border-black pb-2 pt-1 px-1 text-right">{formatCurrency(sgst)}</td>
+              </>
+            )}
+            {hasIGST && (
+              <td className="border border-black pb-2 pt-1 px-1 text-right">{formatCurrency(igst)}</td>
+            )}
+            <td className="border border-black pb-2 pt-1 px-1 text-right">{formatCurrency(totalTax)}</td>
           </tr>
         </tbody>
       </table>
 
       {/* Tax Amount in Words */}
-      <div className="border-x border-b border-black p-1 text-xs">
+      <div className="border-x border-b border-black pb-2 pt-1 px-1 text-xs">
         <span className="font-semibold">Tax Amount (in words): </span>
         <span>{numberToWords(totalTax)}</span>
       </div>
@@ -272,7 +285,7 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
           <div className="text-right font-bold">For {data.company.name}</div>
           <div className="flex-1 flex items-center justify-center">
             {data.company.seal && (
-              <img src={data.company.seal} alt="Company Seal" className="h-16 w-auto object-contain" />
+              <img src={data.company.seal} alt="Company Seal" className="h-[83px] w-auto object-contain" />
             )}
           </div>
           <div className="text-right border-t border-black pt-1">Authorised Signatory</div>
