@@ -13,7 +13,14 @@ interface InvoiceItemsTableProps {
   onItemsChange: (items: InvoiceItem[]) => void;
 }
 
-const GST_RATES = [0, 5, 12, 18, 28];
+const GST_OPTIONS = [
+  { value: '0', label: '0%', type: 'CGST_SGST' as const },
+  { value: '5', label: '5% (CGST+SGST)', type: 'CGST_SGST' as const },
+  { value: '12', label: '12% (CGST+SGST)', type: 'CGST_SGST' as const },
+  { value: '18', label: '18% (CGST+SGST)', type: 'CGST_SGST' as const },
+  { value: '18-IGST', label: '18% IGST', type: 'IGST' as const },
+  { value: '28', label: '28% (CGST+SGST)', type: 'CGST_SGST' as const },
+];
 
 export const InvoiceItemsTable = ({ items, onItemsChange }: InvoiceItemsTableProps) => {
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
@@ -29,11 +36,24 @@ export const InvoiceItemsTable = ({ items, onItemsChange }: InvoiceItemsTablePro
       description: "",
       hsnSac: "",
       gstRate: 18,
+      gstType: 'CGST_SGST',
       quantity: 1,
       rate: 0,
       amount: 0,
     };
     onItemsChange([...items, newItem]);
+  };
+
+  const handleGstChange = (id: string, value: string) => {
+    const isIGST = value.includes('-IGST');
+    const rate = parseInt(value.replace('-IGST', ''));
+    const updatedItems = items.map((item) => {
+      if (item.id === id) {
+        return { ...item, gstRate: rate, gstType: isIGST ? 'IGST' as const : 'CGST_SGST' as const };
+      }
+      return item;
+    });
+    onItemsChange(updatedItems);
   };
 
   const updateItem = (id: string, field: keyof InvoiceItem, value: string | number) => {
@@ -163,16 +183,16 @@ export const InvoiceItemsTable = ({ items, onItemsChange }: InvoiceItemsTablePro
                 </td>
                 <td>
                   <Select
-                    value={item.gstRate.toString()}
-                    onValueChange={(val) => updateItem(item.id, "gstRate", Number(val))}
+                    value={item.gstType === 'IGST' ? `${item.gstRate}-IGST` : item.gstRate.toString()}
+                    onValueChange={(val) => handleGstChange(item.id, val)}
                   >
                     <SelectTrigger className="text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {GST_RATES.map((rate) => (
-                        <SelectItem key={rate} value={rate.toString()}>
-                          {rate}%
+                      {GST_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
                         </SelectItem>
                       ))}
                     </SelectContent>

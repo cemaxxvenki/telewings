@@ -35,11 +35,21 @@ export const calculateSubtotal = (items: InvoiceItem[]): number => {
 };
 
 export const calculateTotalCGST = (items: InvoiceItem[]): number => {
-  return items.reduce((sum, item) => sum + (item.amount * item.gstRate) / 200, 0);
+  return items
+    .filter(item => item.gstType !== 'IGST')
+    .reduce((sum, item) => sum + (item.amount * item.gstRate) / 200, 0);
 };
 
 export const calculateTotalSGST = (items: InvoiceItem[]): number => {
-  return items.reduce((sum, item) => sum + (item.amount * item.gstRate) / 200, 0);
+  return items
+    .filter(item => item.gstType !== 'IGST')
+    .reduce((sum, item) => sum + (item.amount * item.gstRate) / 200, 0);
+};
+
+export const calculateTotalIGST = (items: InvoiceItem[]): number => {
+  return items
+    .filter(item => item.gstType === 'IGST')
+    .reduce((sum, item) => sum + (item.amount * item.gstRate) / 100, 0);
 };
 
 export const calculateGrandTotal = (
@@ -50,10 +60,14 @@ export const calculateGrandTotal = (
   const subtotal = calculateSubtotal(items);
   const cgst = calculateTotalCGST(items);
   const sgst = calculateTotalSGST(items);
-  return subtotal + cgst + sgst + pAndF + roundOff;
+  const igst = calculateTotalIGST(items);
+  return subtotal + cgst + sgst + igst + pAndF + roundOff;
 };
 
 export const numberToWords = (num: number): string => {
+  // Round to 2 decimal places first to avoid floating point issues
+  num = Math.round(num * 100) / 100;
+  
   const ones = [
     "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
     "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
@@ -90,7 +104,7 @@ export const numberToWords = (num: number): string => {
   };
 
   const rupees = Math.floor(num);
-  const paise = Math.round((num - rupees) * 100);
+  const paise = Math.round((num * 100) % 100);
 
   let result = "Rupees " + convert(rupees);
   if (paise > 0) {

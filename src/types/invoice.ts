@@ -34,6 +34,7 @@ export interface InvoiceItem {
   description: string;
   hsnSac: string;
   gstRate: number;
+  gstType?: 'CGST_SGST' | 'IGST';
   quantity: number;
   rate: number;
   amount: number;
@@ -67,6 +68,8 @@ export interface TaxBreakdown {
   cgstAmount: number;
   sgstRate: number;
   sgstAmount: number;
+  igstRate?: number;
+  igstAmount?: number;
   totalTax: number;
 }
 
