@@ -7,6 +7,7 @@ import { CompanyDetailsForm } from "@/components/CompanyDetailsForm";
 import { CustomerSelector } from "@/components/CustomerSelector";
 import { InvoiceItemsTable } from "@/components/InvoiceItemsTable";
 import { InvoicePreview } from "@/components/InvoicePreview";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CompanyDetails, CustomerDetails, InvoiceData, InvoiceItem } from "@/types/invoice";
 import { getCompanyDetails, getNextInvoiceNumber } from "@/utils/storage";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("invoice");
   const [company, setCompany] = useState<CompanyDetails | null>(null);
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
+  const [invoiceType, setInvoiceType] = useState<'TAX' | 'PROFORMA'>('TAX');
   const [invoiceNo, setInvoiceNo] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split("T")[0]);
   const [items, setItems] = useState<InvoiceItem[]>([]);
@@ -45,6 +47,7 @@ const Index = () => {
   }, []);
 
   const invoiceData: InvoiceData = {
+    invoiceType,
     invoiceNo,
     invoiceDate,
     deliveryNote,
@@ -184,7 +187,19 @@ const Index = () => {
                     <FileText className="h-5 w-5 text-primary" />
                     <h2 className="text-lg font-semibold text-foreground">Invoice Details</h2>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <Label className="form-label">Invoice Type *</Label>
+                      <Select value={invoiceType} onValueChange={(value: 'TAX' | 'PROFORMA') => setInvoiceType(value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TAX">Tax Invoice</SelectItem>
+                          <SelectItem value="PROFORMA">Proforma Invoice</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div>
                       <Label className="form-label">Invoice No. *</Label>
                       <Input

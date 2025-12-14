@@ -41,6 +41,7 @@ export interface InvoiceItem {
 }
 
 export interface InvoiceData {
+  invoiceType?: 'TAX' | 'PROFORMA';
   invoiceNo: string;
   invoiceDate: string;
   deliveryNote?: string;

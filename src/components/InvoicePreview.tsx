@@ -32,7 +32,9 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
     >
       {/* Header */}
       <div className="text-center border-b-2 border-black pb-2 mb-2">
-        <p className="text-xs font-bold">TAX INVOICE (ORIGINAL FOR RECEIPIENT)</p>
+        <p className="text-xs font-bold">
+          {data.invoiceType === 'PROFORMA' ? 'PROFORMA INVOICE' : 'TAX INVOICE (ORIGINAL FOR RECEIPIENT)'}
+        </p>
       </div>
 
       {/* Company Header - Logo on Left, Name and Address on Right */}
