@@ -31,7 +31,7 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
       style={{ fontFamily: "Arial, sans-serif" }}
     >
       {/* Header */}
-      <div className="text-center border-b-2 border-black pb-2 mb-2">
+      <div className="text-center border-b border-black pb-2 mb-2">
         <p className="text-xs font-bold">
           {data.invoiceType === 'PROFORMA' ? 'PROFORMA INVOICE' : 'TAX INVOICE (ORIGINAL FOR RECEIPIENT)'}
         </p>
@@ -147,21 +147,6 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
               <td className="border border-black pb-2 pt-1 px-1 text-right">{formatCurrency(item.amount)}</td>
             </tr>
           ))}
-          {/* Empty rows for spacing */}
-          {data.items.length < 5 &&
-            Array(5 - data.items.length)
-              .fill(0)
-              .map((_, i) => (
-                <tr key={`empty-${i}`}>
-                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
-                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
-                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
-                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
-                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
-                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
-                  <td className="border border-black pb-2 pt-1 px-1">&nbsp;</td>
-                </tr>
-              ))}
         </tbody>
       </table>
 

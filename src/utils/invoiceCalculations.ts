@@ -79,11 +79,18 @@ export const numberToWords = (num: number): string => {
 
   if (num === 0) return "Zero";
 
-  const convertLessThanThousand = (n: number): string => {
+  const convertLessThanHundred = (n: number): string => {
     if (n === 0) return "";
     if (n < 20) return ones[n];
-    if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
-    return ones[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + convertLessThanThousand(n % 100) : "");
+    return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
+  };
+
+  const convertLessThanThousand = (n: number): string => {
+    if (n === 0) return "";
+    if (n < 100) return convertLessThanHundred(n);
+    const hundreds = Math.floor(n / 100);
+    const remainder = n % 100;
+    return ones[hundreds] + " Hundred" + (remainder ? " and " + convertLessThanHundred(remainder) : "");
   };
 
   const convert = (n: number): string => {
@@ -98,7 +105,14 @@ export const numberToWords = (num: number): string => {
     if (crore) result += convertLessThanThousand(crore) + " Crore ";
     if (lakh) result += convertLessThanThousand(lakh) + " Lakh ";
     if (thousand) result += convertLessThanThousand(thousand) + " Thousand ";
-    if (remainder) result += convertLessThanThousand(remainder);
+    if (remainder) {
+      if (crore || lakh || thousand) {
+        if (remainder < 100) {
+          result += "and ";
+        }
+      }
+      result += convertLessThanThousand(remainder);
+    }
 
     return result.trim();
   };
