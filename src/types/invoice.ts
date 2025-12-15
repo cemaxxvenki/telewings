@@ -81,3 +81,10 @@ export interface SavedItem {
   gstRate: number;
   rate: number;
 }
+
+export interface SavedInvoice {
+  id: string;
+  invoiceData: InvoiceData;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -1,9 +1,11 @@
-import { CompanyDetails, CustomerDetails, SavedItem } from "@/types/invoice";
+import { CompanyDetails, CustomerDetails, SavedItem, SavedInvoice } from "@/types/invoice";
 
 const COMPANY_KEY = "gst_invoice_company";
 const CUSTOMERS_KEY = "gst_invoice_customers";
 const ITEMS_KEY = "gst_invoice_items";
 const INVOICE_COUNTER_KEY = "gst_invoice_counter";
+const SAVED_INVOICES_KEY = "gst_saved_invoices";
+const AUTH_KEY = "gst_invoice_auth";
 
 export const saveCompanyDetails = (company: CompanyDetails): void => {
   localStorage.setItem(COMPANY_KEY, JSON.stringify(company));
@@ -75,4 +77,44 @@ export const getNextInvoiceNumber = (): string => {
   
   localStorage.setItem(INVOICE_COUNTER_KEY, JSON.stringify({ fiscalYear, counter }));
   return `${fiscalYear}/${counter.toString().padStart(3, "0")}`;
+};
+
+// Saved Invoices Management
+export const saveInvoice = (invoice: SavedInvoice): void => {
+  const invoices = getSavedInvoices();
+  const existingIndex = invoices.findIndex((i) => i.id === invoice.id);
+  if (existingIndex >= 0) {
+    invoices[existingIndex] = { ...invoice, updatedAt: new Date().toISOString() };
+  } else {
+    invoices.push(invoice);
+  }
+  localStorage.setItem(SAVED_INVOICES_KEY, JSON.stringify(invoices));
+};
+
+export const getSavedInvoices = (): SavedInvoice[] => {
+  const data = localStorage.getItem(SAVED_INVOICES_KEY);
+  return data ? JSON.parse(data) : [];
+};
+
+export const getInvoiceById = (id: string): SavedInvoice | null => {
+  const invoices = getSavedInvoices();
+  return invoices.find((i) => i.id === id) || null;
+};
+
+export const deleteInvoiceById = (id: string): void => {
+  const invoices = getSavedInvoices().filter((i) => i.id !== id);
+  localStorage.setItem(SAVED_INVOICES_KEY, JSON.stringify(invoices));
+};
+
+// Authentication
+export const isAuthenticated = (): boolean => {
+  return localStorage.getItem(AUTH_KEY) === "true";
+};
+
+export const setAuthenticated = (value: boolean): void => {
+  if (value) {
+    localStorage.setItem(AUTH_KEY, "true");
+  } else {
+    localStorage.removeItem(AUTH_KEY);
+  }
 };
