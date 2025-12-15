@@ -7,15 +7,18 @@ import { CompanyDetailsForm } from "@/components/CompanyDetailsForm";
 import { CustomerSelector } from "@/components/CustomerSelector";
 import { InvoiceItemsTable } from "@/components/InvoiceItemsTable";
 import { InvoicePreview } from "@/components/InvoicePreview";
+import { InvoiceHistory } from "@/components/InvoiceHistory";
+import { LoginPage } from "@/components/LoginPage";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CompanyDetails, CustomerDetails, InvoiceData, InvoiceItem } from "@/types/invoice";
-import { getCompanyDetails, getNextInvoiceNumber } from "@/utils/storage";
+import { CompanyDetails, CustomerDetails, InvoiceData, InvoiceItem, SavedInvoice } from "@/types/invoice";
+import { getCompanyDetails, getNextInvoiceNumber, saveInvoice, isAuthenticated, setAuthenticated } from "@/utils/storage";
 import { toast } from "sonner";
-import { FileText, Download, Eye, Settings, ReceiptText } from "lucide-react";
+import { FileText, Download, Eye, Settings, ReceiptText, Save, History, LogOut } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 const Index = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState("invoice");
   const [company, setCompany] = useState<CompanyDetails | null>(null);
   const [customer, setCustomer] = useState<CustomerDetails | null>(null);
@@ -27,6 +30,7 @@ const Index = () => {
   const [roundOff, setRoundOff] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
 
   // Optional fields
   const [deliveryNote, setDeliveryNote] = useState("");
@@ -39,12 +43,30 @@ const Index = () => {
   const [destination, setDestination] = useState("");
 
   useEffect(() => {
-    const savedCompany = getCompanyDetails();
-    if (savedCompany) {
-      setCompany(savedCompany);
-    }
-    setInvoiceNo(getNextInvoiceNumber());
+    setIsLoggedIn(isAuthenticated());
   }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      const savedCompany = getCompanyDetails();
+      if (savedCompany) {
+        setCompany(savedCompany);
+      }
+      if (!editingInvoiceId) {
+        setInvoiceNo(getNextInvoiceNumber());
+      }
+    }
+  }, [isLoggedIn, editingInvoiceId]);
+
+  const handleLogin = () => {
+    setAuthenticated(true);
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    setAuthenticated(false);
+    setIsLoggedIn(false);
+  };
 
   const invoiceData: InvoiceData = {
     invoiceType,
@@ -73,6 +95,76 @@ const Index = () => {
     items,
     pAndF,
     roundOff,
+  };
+
+  const handleSaveInvoice = () => {
+    if (!company) {
+      toast.error("Please fill in company details first");
+      setActiveTab("settings");
+      return;
+    }
+    if (!customer) {
+      toast.error("Please select or add a customer");
+      return;
+    }
+    if (items.length === 0) {
+      toast.error("Please add at least one item");
+      return;
+    }
+
+    const savedInvoice: SavedInvoice = {
+      id: editingInvoiceId || crypto.randomUUID(),
+      invoiceData,
+      createdAt: editingInvoiceId ? new Date().toISOString() : new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    saveInvoice(savedInvoice);
+    toast.success(editingInvoiceId ? "Invoice updated!" : "Invoice saved!");
+    
+    // Reset form for new invoice
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setEditingInvoiceId(null);
+    setInvoiceNo(getNextInvoiceNumber());
+    setInvoiceDate(new Date().toISOString().split("T")[0]);
+    setCustomer(null);
+    setItems([]);
+    setPAndF(0);
+    setRoundOff(0);
+    setDeliveryNote("");
+    setPaymentTerms("");
+    setSupplierRef("");
+    setBuyerOrderNo("");
+    setBuyerOrderDate("");
+    setDispatchDocNo("");
+    setDispatchThrough("");
+    setDestination("");
+    setInvoiceType('TAX');
+  };
+
+  const handleEditInvoice = (savedInvoice: SavedInvoice) => {
+    const data = savedInvoice.invoiceData;
+    setEditingInvoiceId(savedInvoice.id);
+    setInvoiceType(data.invoiceType || 'TAX');
+    setInvoiceNo(data.invoiceNo);
+    setInvoiceDate(data.invoiceDate);
+    setCustomer(data.customer);
+    setItems(data.items);
+    setPAndF(data.pAndF);
+    setRoundOff(data.roundOff);
+    setDeliveryNote(data.deliveryNote || "");
+    setPaymentTerms(data.paymentTerms || "");
+    setSupplierRef(data.supplierRef || "");
+    setBuyerOrderNo(data.buyerOrderNo || "");
+    setBuyerOrderDate(data.buyerOrderDate || "");
+    setDispatchDocNo(data.dispatchDocNo || "");
+    setDispatchThrough(data.dispatchThrough || "");
+    setDestination(data.destination || "");
+    setActiveTab("invoice");
+    toast.info(`Editing invoice ${data.invoiceNo}`);
   };
 
   const handleGeneratePDF = async () => {
@@ -131,6 +223,10 @@ const Index = () => {
     }
   };
 
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -153,6 +249,13 @@ const Index = () => {
               {showPreview ? "Hide Preview" : "Show Preview"}
             </Button>
             <Button
+              variant="secondary"
+              onClick={handleSaveInvoice}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {editingInvoiceId ? "Update" : "Save"}
+            </Button>
+            <Button
               onClick={handleGeneratePDF}
               disabled={isGenerating}
               className="bg-accent hover:bg-accent/90 text-accent-foreground"
@@ -160,19 +263,30 @@ const Index = () => {
               <Download className="h-4 w-4 mr-2" />
               {isGenerating ? "Generating..." : "Download PDF"}
             </Button>
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="text-primary-foreground border-primary-foreground/30 hover:bg-primary-foreground/10"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto p-6">
-        <div className={`grid gap-6 ${showPreview ? "lg:grid-cols-2" : "lg:grid-cols-1"}`}>
+        <div className="space-y-6">
           {/* Form Section */}
           <div className="space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="invoice" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Invoice
+                </TabsTrigger>
+                <TabsTrigger value="history" className="flex items-center gap-2">
+                  <History className="h-4 w-4" />
+                  History
                 </TabsTrigger>
                 <TabsTrigger value="settings" className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
@@ -181,6 +295,15 @@ const Index = () => {
               </TabsList>
 
               <TabsContent value="invoice" className="space-y-6 mt-6">
+                {editingInvoiceId && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center justify-between">
+                    <span className="text-amber-800">Editing invoice: {invoiceNo}</span>
+                    <Button variant="outline" size="sm" onClick={resetForm}>
+                      Cancel Edit & Create New
+                    </Button>
+                  </div>
+                )}
+
                 {/* Invoice Details */}
                 <div className="form-section animate-fade-in">
                   <div className="flex items-center gap-2 mb-4">
@@ -295,16 +418,20 @@ const Index = () => {
                 </div>
               </TabsContent>
 
+              <TabsContent value="history" className="mt-6">
+                <InvoiceHistory onEdit={handleEditInvoice} />
+              </TabsContent>
+
               <TabsContent value="settings" className="mt-6">
                 <CompanyDetailsForm onSave={setCompany} initialData={company} />
               </TabsContent>
             </Tabs>
           </div>
 
-          {/* Preview Section */}
+          {/* Preview Section - Now at bottom */}
           {showPreview && (
-            <div className="lg:sticky lg:top-6 lg:h-fit">
-              <div className="form-section overflow-auto max-h-[calc(100vh-8rem)]">
+            <div>
+              <div className="form-section overflow-auto">
                 <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Eye className="h-5 w-5 text-primary" />
                   Invoice Preview
